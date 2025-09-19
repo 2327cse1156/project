@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Listing } from '../types';
-import { listingsAPI } from '../utils/api';
+import { listingsAPI, favoritesAPI } from '../utils/supabase-api';
 import { formatPrice, formatDate } from '../utils/validation';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { ContactModal } from '../components/messaging/ContactModal';
 import {
   StarIcon,
   MapPinIcon,
@@ -29,6 +30,7 @@ export const ListingDetailPage: React.FC = () => {
   const [error, setError] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -47,6 +49,41 @@ export const ListingDetailPage: React.FC = () => {
 
     fetchListing();
   }, [id]);
+
+  useEffect(() => {
+    if (user && listing) {
+      checkIfFavorited();
+    }
+  }, [user, listing]);
+
+  const checkIfFavorited = async () => {
+    if (!user || !listing) return;
+    try {
+      const favorited = await favoritesAPI.isFavorited(user.id, listing.id);
+      setIsFavorited(favorited);
+    } catch (error) {
+      console.error('Error checking favorite status:', error);
+    }
+  };
+
+  const toggleFavorite = async () => {
+    if (!user || !listing) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+
+    try {
+      if (isFavorited) {
+        await favoritesAPI.removeFromFavorites(user.id, listing.id);
+        setIsFavorited(false);
+      } else {
+        await favoritesAPI.addToFavorites(user.id, listing.id);
+        setIsFavorited(true);
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
+  };
 
   const nextImage = () => {
     if (!listing) return;
@@ -83,8 +120,7 @@ export const ListingDetailPage: React.FC = () => {
       return;
     }
     
-    // In a real app, this would open a messaging system or show contact details
-    alert(`Contact ${listing?.seller?.name} at ${listing?.seller?.email || 'their email'}`);
+    setShowContactModal(true);
   };
 
   if (loading) {
@@ -212,7 +248,7 @@ export const ListingDetailPage: React.FC = () => {
 
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => setIsFavorited(!isFavorited)}
+                    onClick={toggleFavorite}
                     className={`p-2 rounded-lg transition-colors ${
                       isFavorited ? 'text-red-600 bg-red-50' : 'text-gray-400 bg-gray-50 hover:bg-gray-100'
                     }`}
@@ -349,6 +385,16 @@ export const ListingDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Contact Modal */}
+      {listing?.seller && (
+        <ContactModal
+          isOpen={showContactModal}
+          onClose={() => setShowContactModal(false)}
+          seller={listing.seller}
+          listingTitle={listing.title}
+        />
+      )}
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { listingsAPI } from '../utils/api';
+import { listingsAPI } from '../utils/supabase-api';
 import { CATEGORIES, CAMPUS_LOCATIONS } from '../utils/constants';
 import { validatePrice } from '../utils/validation';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';

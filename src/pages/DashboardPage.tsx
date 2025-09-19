@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ListingCard } from '../components/listings/ListingCard';
 import { Listing } from '../types';
-import { listingsAPI } from '../utils/api';
+import { listingsAPI } from '../utils/supabase-api';
 import { 
   PlusIcon, 
   EyeIcon, 
@@ -23,10 +23,10 @@ export const DashboardPage: React.FC = () => {
   const fetchUserListings = async () => {
     try {
       setLoading(true);
-      // Mock user's listings - in real app, filter by user ID
-      const allListings = await listingsAPI.getListings();
-      const userOwnedListings = allListings.filter(listing => listing.sellerId === user?.id);
-      setUserListings(userOwnedListings);
+      if (user?.id) {
+        const userOwnedListings = await listingsAPI.getUserListings(user.id);
+        setUserListings(userOwnedListings);
+      }
     } catch (err) {
       setError('Failed to load your listings');
     } finally {

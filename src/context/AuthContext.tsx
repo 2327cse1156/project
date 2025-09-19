@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, AuthContextType, RegisterData } from '../types';
-import { authAPI } from '../utils/api';
+import { authAPI } from '../utils/supabase-api';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -22,35 +23,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const userData = await authAPI.verifyToken(token);
-          setUser(userData);
-        } catch (error) {
-          localStorage.removeItem('token');
-        }
+      try {
+        const userData = await authAPI.verifyToken();
+        setUser(userData);
+      } catch (error) {
+        console.error('Auth verification failed:', error);
       }
       setLoading(false);
     };
 
     initializeAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          const userData = await authAPI.verifyToken();
+          setUser(userData);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
     const { user, token } = await authAPI.login(email, password);
-    localStorage.setItem('token', token);
     setUser(user);
   };
 
   const register = async (userData: RegisterData) => {
     const { user, token } = await authAPI.register(userData);
-    localStorage.setItem('token', token);
     setUser(user);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    authAPI.logout();
     setUser(null);
   };
 

@@ -9,7 +9,8 @@ import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  HeartIcon
 } from '@heroicons/react/24/outline';
 
 export const Navbar: React.FC = () => {
@@ -31,6 +32,7 @@ export const Navbar: React.FC = () => {
     { path: '/browse', label: 'Browse', icon: ShoppingBagIcon },
     ...(isAuthenticated ? [
       { path: '/dashboard', label: 'Dashboard', icon: UserCircleIcon },
+      { path: '/favorites', label: 'Favorites', icon: HeartIcon },
       { path: '/create-listing', label: 'Sell Item', icon: PlusIcon }
     ] : [])
   ];

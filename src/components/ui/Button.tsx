@@ -11,6 +11,7 @@ interface ButtonProps {
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
   className?: string;
+  asChild?: boolean;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -21,7 +22,8 @@ export const Button: React.FC<ButtonProps> = ({
   disabled = false,
   onClick,
   type = 'button',
-  className = ''
+  className = '',
+  asChild = false
 }) => {
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
   
@@ -38,17 +40,28 @@ export const Button: React.FC<ButtonProps> = ({
     lg: 'px-6 py-3 text-lg'
   };
 
+  const classes = clsx(
+    baseClasses,
+    variantClasses[variant],
+    sizeClasses[size],
+    className
+  );
+
+  if (asChild) {
+    return (
+      <span className={classes}>
+        {loading && <LoadingSpinner size="sm" className="mr-2" />}
+        {children}
+      </span>
+    );
+  }
+
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      className={clsx(
-        baseClasses,
-        variantClasses[variant],
-        sizeClasses[size],
-        className
-      )}
+      className={classes}
     >
       {loading && <LoadingSpinner size="sm" className="mr-2" />}
       {children}

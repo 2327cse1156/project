@@ -5,7 +5,7 @@ import { ListingCard } from '../components/listings/ListingCard';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Button } from '../components/ui/Button';
 import { Listing, SearchFilters } from '../types';
-import { listingsAPI } from '../utils/api';
+import { listingsAPI } from '../utils/supabase-api';
 import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 
 export const BrowsePage: React.FC = () => {

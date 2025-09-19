@@ -12,8 +12,12 @@ import { BrowsePage } from './pages/BrowsePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CreateListingPage } from './pages/CreateListingPage';
 import { ListingDetailPage } from './pages/ListingDetailPage';
+import { FavoritesPage } from './pages/FavoritesPage';
+import { useToast } from './components/ui/Toast';
 
 function App() {
+  const { ToastContainer } = useToast();
+
   return (
     <AuthProvider>
       <Router>
@@ -46,6 +50,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/favorites"
+                element={
+                  <ProtectedRoute>
+                    <FavoritesPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* 404 Fallback */}
               <Route
@@ -69,6 +81,7 @@ function App() {
           </main>
 
           <Footer />
+          <ToastContainer />
         </div>
       </Router>
     </AuthProvider>
