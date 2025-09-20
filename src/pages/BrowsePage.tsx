@@ -29,7 +29,12 @@ export const BrowsePage: React.FC = () => {
       const data = await listingsAPI.getListings(filters);
       setListings(data);
     } catch (err) {
-      setError('Failed to load listings');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load listings';
+      if (errorMessage.includes('table') && errorMessage.includes('schema cache')) {
+        setError('Database not set up. Using demo data. Please connect to Supabase and run migrations.');
+      } else {
+        setError('Failed to load listings');
+      }
       console.error('Error fetching listings:', err);
     } finally {
       setLoading(false);

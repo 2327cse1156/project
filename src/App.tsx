@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { DatabaseSetupBanner } from './components/ui/DatabaseSetupBanner';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
@@ -23,6 +24,7 @@ function App() {
       <Router>
         <div className="min-h-screen flex flex-col bg-gray-50">
           <Navbar />
+          <DatabaseSetupBanner />
           
           <main className="flex-1">
             <Routes>

@@ -1,10 +1,21 @@
 import { supabase } from '../lib/supabase';
 import { User, Listing, Review, RegisterData, SearchFilters } from '../types';
 import { Database } from '../lib/database.types';
+import { authAPI as mockAuthAPI, listingsAPI as mockListingsAPI, favoritesAPI as mockFavoritesAPI, reviewsAPI as mockReviewsAPI } from './api';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type ListingRow = Database['public']['Tables']['listings']['Row'];
 type ReviewRow = Database['public']['Tables']['reviews']['Row'];
+
+// Helper function to check if tables exist
+const checkTablesExist = async (): Promise<boolean> => {
+  try {
+    const { error } = await supabase.from('profiles').select('id').limit(1);
+    return !error || error.code !== 'PGRST205';
+  } catch {
+    return false;
+  }
+};
 
 // Helper function to convert database profile to User type
 const profileToUser = (profile: Profile): User => ({
@@ -37,6 +48,12 @@ const dbListingToListing = (listing: ListingRow & { profiles?: Profile }): Listi
 // Auth API
 export const authAPI = {
   async login(email: string, password: string): Promise<{ user: User; token: string }> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return mockAuthAPI.login(email, password);
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -63,6 +80,12 @@ export const authAPI = {
   },
 
   async register(userData: RegisterData): Promise<{ user: User; token: string }> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return mockAuthAPI.register(userData);
+    }
+
     // Validate college email
     if (!userData.email.match(/\.(edu|ac\.in)$/)) {
       throw new Error('Please use a valid college email address');
@@ -100,6 +123,11 @@ export const authAPI = {
   },
 
   async verifyToken(): Promise<User | null> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      return null;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) return null;
@@ -124,6 +152,12 @@ export const authAPI = {
 // Listings API
 export const listingsAPI = {
   async getListings(filters?: Partial<SearchFilters>): Promise<Listing[]> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return mockListingsAPI.getListings(filters);
+    }
+
     let query = supabase
       .from('listings')
       .select(`
@@ -172,6 +206,12 @@ export const listingsAPI = {
   },
 
   async getListing(id: string): Promise<Listing> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return mockListingsAPI.getListing(id);
+    }
+
     const { data, error } = await supabase
       .from('listings')
       .select(`
@@ -188,6 +228,14 @@ export const listingsAPI = {
   },
 
   async getUserListings(userId: string): Promise<Listing[]> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return mockListingsAPI.getListings().then(listings => 
+        listings.filter(l => l.sellerId === userId)
+      );
+    }
+
     const { data, error } = await supabase
       .from('listings')
       .select(`
@@ -203,6 +251,12 @@ export const listingsAPI = {
   },
 
   async createListing(listing: Omit<Listing, 'id' | 'seller' | 'createdAt' | 'updatedAt'>): Promise<Listing> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return mockListingsAPI.createListing(listing);
+    }
+
     const { data, error } = await supabase
       .from('listings')
       .insert({
@@ -228,6 +282,12 @@ export const listingsAPI = {
   },
 
   async updateListing(id: string, updates: Partial<Listing>): Promise<Listing> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return mockListingsAPI.updateListing(id, updates);
+    }
+
     const { data, error } = await supabase
       .from('listings')
       .update({
@@ -253,6 +313,12 @@ export const listingsAPI = {
   },
 
   async deleteListing(id: string): Promise<void> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return mockListingsAPI.deleteListing(id);
+    }
+
     const { error } = await supabase
       .from('listings')
       .delete()
@@ -265,6 +331,12 @@ export const listingsAPI = {
 // Favorites API
 export const favoritesAPI = {
   async getUserFavorites(userId: string): Promise<Listing[]> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('favorites')
       .select(`
@@ -284,6 +356,12 @@ export const favoritesAPI = {
   },
 
   async addToFavorites(userId: string, listingId: string): Promise<void> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return;
+    }
+
     const { error } = await supabase
       .from('favorites')
       .insert({
@@ -295,6 +373,12 @@ export const favoritesAPI = {
   },
 
   async removeFromFavorites(userId: string, listingId: string): Promise<void> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return;
+    }
+
     const { error } = await supabase
       .from('favorites')
       .delete()
@@ -305,6 +389,11 @@ export const favoritesAPI = {
   },
 
   async isFavorited(userId: string, listingId: string): Promise<boolean> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      return false;
+    }
+
     const { data, error } = await supabase
       .from('favorites')
       .select('id')
@@ -323,6 +412,12 @@ export const favoritesAPI = {
 // Reviews API
 export const reviewsAPI = {
   async getReviewsForUser(userId: string): Promise<Review[]> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return mockReviewsAPI.getReviewsForUser(userId);
+    }
+
     const { data, error } = await supabase
       .from('reviews')
       .select(`
@@ -349,6 +444,12 @@ export const reviewsAPI = {
   },
 
   async createReview(review: Omit<Review, 'id' | 'createdAt'>): Promise<Review> {
+    const tablesExist = await checkTablesExist();
+    if (!tablesExist) {
+      console.warn('Database tables not found, using mock data. Please set up Supabase tables.');
+      return mockReviewsAPI.createReview(review);
+    }
+
     const { data, error } = await supabase
       .from('reviews')
       .insert({
